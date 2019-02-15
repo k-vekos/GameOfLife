@@ -20,6 +20,13 @@ GameOfLife::GameOfLife()
 	world[3][2] = true;
 	world[3][3] = true;
 	world[3][4] = true;
+
+	// place a glider
+	world[WORLD_SIZE_X - 10 + 1][WORLD_SIZE_Y - 10 + 3] = true;
+	world[WORLD_SIZE_X - 10 + 2][WORLD_SIZE_Y - 10 + 4] = true;
+	world[WORLD_SIZE_X - 10 + 3][WORLD_SIZE_Y - 10 + 2] = true;
+	world[WORLD_SIZE_X - 10 + 3][WORLD_SIZE_Y - 10 + 3] = true;
+	world[WORLD_SIZE_X - 10 + 3][WORLD_SIZE_Y - 10 + 4] = true;
 }
 
 void GameOfLife::update()
@@ -30,9 +37,6 @@ void GameOfLife::update()
 	// evaluate the state of every cell
 	cellForEach([&](int x, int y)
 	{
-		// current cell location
-		sf::Vector2i pos(x, y);
-
 		// # of alive neighbors
 		int aliveCount = 0;
 
@@ -41,6 +45,10 @@ void GameOfLife::update()
 		{
 			for (int nY = -1; nY <= 1; nY++) // nY = -1, 0, 1
 			{
+				// make sure to skip the current cell!
+				if (nX == 0 && nY == 0)
+					continue;
+
 				// wrap around to other side if neighbor would be outside world
 				int newX = std::fmod(nX + x + WORLD_SIZE_X, WORLD_SIZE_X);
 				int newY = std::fmod(nY + y + WORLD_SIZE_Y, WORLD_SIZE_Y);
@@ -49,6 +57,12 @@ void GameOfLife::update()
 					aliveCount++;
 			}
 		}
+
+
+		/* evaluate game rules on current cell */
+
+		// current cell location
+		sf::Vector2i pos(x, y);
 
 		switch (world[x][y]) // is current cell alive?
 		{
@@ -88,6 +102,15 @@ std::vector<sf::Vector2i> GameOfLife::getLiveCells()
 	});
 
 	return liveCells;
+}
+
+void GameOfLife::setCell(int x, int y, bool alive)
+{
+	// constrain x and y
+	x = std::max(std::min(x, WORLD_SIZE_X - 1), 0);
+	y = std::max(std::min(y, WORLD_SIZE_Y - 1), 0);
+
+	world[x][y] = alive;
 }
 
 template<typename Func>
