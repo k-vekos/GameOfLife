@@ -1,22 +1,12 @@
-﻿// GameOfLife.cpp : Defines the entry point for the application.
-//
-
-#include "GameOfLife.h"
+﻿#include "GameOfLife.h"
 #include "WorldRenderer.h"
-//#include <iostream>
-//#include <fstream>
-//#include <string>
-//#include <sstream>
-//#include <SFML/Window.hpp>
+#include <iostream>
 #include <SFML/Graphics.hpp>
 
 using namespace std;
 
 int main()
 {
-	//// new world with all dead cells
-	//bool world[16][16]{ false };
-
 	// create the window
 	sf::RenderWindow window(sf::VideoMode(256, 256), "My window");
 	// scale the image up 2x size
@@ -38,13 +28,25 @@ int main()
 			// "close requested" event: we close the window
 			if (event.type == sf::Event::Closed)
 				window.close();
+			
+			if (event.type == sf::Event::MouseButtonPressed)
+			{
+				if (event.mouseButton.button == sf::Mouse::Left)
+				{
+					game.update();
+
+					/*std::cout << "the left button was pressed" << std::endl;
+					std::cout << "mouse x: " << event.mouseButton.x << std::endl;
+					std::cout << "mouse y: " << event.mouseButton.y << std::endl;*/
+				}
+			}
 		}
 
 		// clear the window with black color
 		window.clear(sf::Color::Black);
 
 		// update the game
-		game.update();
+		//game.update();
 
 		// render the game
 		worldRenderer.render(window, game);

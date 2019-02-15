@@ -38,21 +38,12 @@ void WorldRenderer::render(sf::RenderWindow & window, GameOfLife & game)
 	m_cellVertexPoints.clear();
 
 	// populate m_cellVertexPoints
-	auto aliveCells = game.getLiveCells();
-	for each (auto liveCell in aliveCells)
+	auto aliveLocs = game.getLiveCells();
+	for each (auto loc in aliveLocs)
 	{
-		addQuad(liveCell.first, liveCell.second);
+		addQuad(loc.x, loc.y);
 	}
 
 	// draw quads to window
 	window.draw(m_cellVertexPoints.data(), m_cellVertexPoints.size(), sf::Quads);
 }
-
-//void GameOfLife::setCellColour(int x, int y, sf::Color color)
-//{
-//	auto index = (y * WORLD_SIZE_Y + x) * 4;
-//	for (int i = 0; i < 4; i++)
-//	{
-//		m_cellVertexPoints[index + i].color = color;
-//	}
-//}
