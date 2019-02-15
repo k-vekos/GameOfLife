@@ -12,6 +12,10 @@ int main()
 	// scale the image up 2x size
 	window.setSize(sf::Vector2u(512, 512));
 
+	// disable vsync and uncap framerate limit
+	window.setVerticalSyncEnabled(false);
+	window.setFramerateLimit(0);
+
 	// Create the game
 	GameOfLife game;
 
@@ -57,8 +61,8 @@ int main()
 			// set cell under cursor to alive
 			game.setCell(x, y, true);
 
-			std::cout << "mouse x: " << mousePosition.x << " grid x: " << x << std::endl;
-			std::cout << "mouse y: " << mousePosition.y << " grid y: " << y << std::endl;
+			//std::cout << "mouse x: " << mousePosition.x << " grid x: " << x << std::endl;
+			//std::cout << "mouse y: " << mousePosition.y << " grid y: " << y << std::endl;
 		}
 		else {
 			// update the game
