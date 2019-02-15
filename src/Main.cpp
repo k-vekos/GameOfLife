@@ -2,6 +2,7 @@
 //
 
 #include "GameOfLife.h"
+#include "WorldRenderer.h"
 //#include <iostream>
 //#include <fstream>
 //#include <string>
@@ -24,6 +25,9 @@ int main()
 	// Create the game
 	GameOfLife game;
 
+	// Create a world renderer
+	WorldRenderer worldRenderer;
+
 	// run the program as long as the window is open
 	while (window.isOpen())
 	{
@@ -43,7 +47,7 @@ int main()
 		game.update();
 
 		// render the game
-		game.render(window);
+		worldRenderer.render(window, game);
 
 		// end the current frame
 		window.display();

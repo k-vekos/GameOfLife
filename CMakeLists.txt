@@ -19,6 +19,8 @@ set(SOURCES
 	src/Main.cpp
     src/GameOfLife.cpp
 	src/GameOfLife.h
+	src/WorldRenderer.cpp
+	src/WorldRenderer.h
 )
 
 add_executable(GameOfLife ${SOURCES})
