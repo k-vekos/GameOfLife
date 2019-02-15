@@ -17,7 +17,9 @@ int main()
 	//bool world[16][16]{ false };
 
 	// create the window
-	sf::RenderWindow window(sf::VideoMode(512, 512), "My window");
+	sf::RenderWindow window(sf::VideoMode(256, 256), "My window");
+	// scale the image up 2x size
+	window.setSize(sf::Vector2u(512, 512));
 
 	// Create the game
 	GameOfLife game;

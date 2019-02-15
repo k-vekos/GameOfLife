@@ -4,8 +4,8 @@
 GameOfLife::GameOfLife()
 {
 	// initialize cell state and prepare the quads for rendering
-	for (int x = 0; x < 512; x++) {
-		for (int y = 0; y < 512; y++) {
+	for (int x = 0; x < WORLD_SIZE_X; x++) {
+		for (int y = 0; y < WORLD_SIZE_Y; y++) {
 			// initialize cell state
 			world[x][y] = false;
 
@@ -17,7 +17,7 @@ GameOfLife::GameOfLife()
 
 	// place two live cells
 	world[0][0] = true;
-	world[256][256] = true;
+	world[WORLD_SIZE_X / 2][WORLD_SIZE_Y / 2] = true;
 }
 
 void GameOfLife::render(sf::RenderWindow & window)
@@ -28,8 +28,8 @@ void GameOfLife::render(sf::RenderWindow & window)
 void GameOfLife::update()
 {
 	// update every cell
-	for (int x = 0; x < 512; x++) {
-		for (int y = 0; y < 512; y++) {
+	for (int x = 0; x < WORLD_SIZE_X; x++) {
+		for (int y = 0; y < WORLD_SIZE_Y; y++) {
 			if (world[x][y]) {
 				setCellColour(x, y, sf::Color::White);
 				//std::cout << "x=" << x << "; y=" << y << "; alive=" << true << std::endl;
@@ -65,7 +65,7 @@ void GameOfLife::addQuad(int gridX, int gridY)
 
 void GameOfLife::setCellColour(int x, int y, sf::Color color)
 {
-	auto index = (y * 512 + x) * 4;
+	auto index = (y * WORLD_SIZE_Y + x) * 4;
 	for (int i = 0; i < 4; i++)
 	{
 		m_cellVertexPoints[index + i].color = color;
