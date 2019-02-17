@@ -5,6 +5,9 @@
 
 using namespace std;
 
+static const int WORLD_SIZE_X = 256;
+static const int WORLD_SIZE_Y = 256;
+
 int main()
 {
 	// create the window
@@ -17,7 +20,7 @@ int main()
 	window.setFramerateLimit(0);
 
 	// Create the game
-	GameOfLife game;
+	GameOfLife game(WORLD_SIZE_X, WORLD_SIZE_Y);
 
 	// Create a world renderer
 	WorldRenderer worldRenderer;
@@ -55,8 +58,8 @@ int main()
 			auto mousePosition = sf::Mouse::getPosition(window);
 
 			// normalize mouse pos
-			int x = (mousePosition.x / 512.0f) * GameOfLife::WORLD_SIZE_X;
-			int y = (mousePosition.y / 512.0f) * GameOfLife::WORLD_SIZE_Y;
+			int x = (mousePosition.x / 512.0f) * WORLD_SIZE_X;
+			int y = (mousePosition.y / 512.0f) * WORLD_SIZE_Y;
 
 			// set cell under cursor to alive
 			game.setCell(x, y, true);

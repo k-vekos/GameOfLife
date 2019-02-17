@@ -9,7 +9,7 @@ project(GameOfLife)
 # Include SFML
 set(SFML_STATIC_LIBRARIES TRUE)
 #set(SFML_ROOT C:/SFML-2.5.1)
-set (CMAKE_PREFIX_PATH "C:\\SFML-2.5.1\\lib\\cmake")
+set (CMAKE_PREFIX_PATH "C:\\SFML-2.5.1\\lib\\cmake;D:\\SFML-2.5.1\\lib\\cmake")
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 
 # Add source to this project's executable.

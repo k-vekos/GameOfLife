@@ -6,16 +6,15 @@
 class GameOfLife
 {
 public:
-	GameOfLife();
+	GameOfLife(int sizeX, int sizeY);
+	void doUpdate(sf::Vector2i startPos, sf::Vector2i endPos);
 	virtual ~GameOfLife() = default;
 	void update();
-	std::vector<sf::Vector2i> getLiveCells();
-	const static int WORLD_SIZE_X = 256;
-	const static int WORLD_SIZE_Y = 256;
+	std::vector<sf::Vector2i> getLiveCells();	
 	void setCell(int x, int y, bool alive);
 
 private:
-	bool world[WORLD_SIZE_X][WORLD_SIZE_Y] { false };
+	std::vector<std::vector<bool>> world;
 
 protected:
 	template<typename Func>
