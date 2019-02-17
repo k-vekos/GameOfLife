@@ -12,7 +12,8 @@ GameOfLife::GameOfLife(int sizeX, int sizeY)
 {
 	// initialize world to specified size, all starting as dead
 	world = std::vector<std::vector<bool>>(sizeX, std::vector<bool>(sizeY, false));
-	//vector<vector<int> >  matrix(4, vector<int>(4,5));
+
+	pendingUpdates.reserve(world.size() * world[0].size()); // reserve space for worst case (every cell needs to be updated)
 
 	// place a glider
 	world[1][3] = true;
@@ -22,11 +23,11 @@ GameOfLife::GameOfLife(int sizeX, int sizeY)
 	world[3][4] = true;
 
 	// place a glider
-	/*world[world.size() - 10 + 1][world[0].size() - 10 + 3] = true;
+	world[world.size() - 10 + 1][world[0].size() - 10 + 3] = true;
 	world[world.size() - 10 + 2][world[0].size() - 10 + 4] = true;
 	world[world.size() - 10 + 3][world[0].size() - 10 + 2] = true;
 	world[world.size() - 10 + 3][world[0].size() - 10 + 3] = true;
-	world[world.size() - 10 + 3][world[0].size() - 10 + 4] = true;*/
+	world[world.size() - 10 + 3][world[0].size() - 10 + 4] = true;
 }
 
 void GameOfLife::doUpdate(sf::Vector2i startPos, sf::Vector2i endPos)
@@ -82,11 +83,12 @@ void GameOfLife::doUpdate(sf::Vector2i startPos, sf::Vector2i endPos)
 
 void GameOfLife::update()
 {
-	unsigned maxThreads = std::thread::hardware_concurrency();
+	//unsigned maxThreads = std::thread::hardware_concurrency();
 
 	// divide the grid into horizontal slices
-	int chunkHeight = world[0].size() / maxThreads;
+	//int chunkHeight = world[0].size() / maxThreads;
 
+	/*
 	// split the work into threads
 	std::vector<std::thread> threads;
 	for (int i = 0; i < maxThreads; i++)
@@ -112,7 +114,9 @@ void GameOfLife::update()
 	for (std::thread & t : threads) {
 		if (t.joinable())
 			t.join();
-	}
+	} */
+
+	doUpdate(sf::Vector2i(0, 0), sf::Vector2i(world.size(), world[0].size()));
 
 	// apply updates to cell states
 	for each (auto loc in pendingUpdates)
