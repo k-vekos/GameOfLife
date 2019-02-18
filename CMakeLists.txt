@@ -3,6 +3,10 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # Give the project a name
 project(GameOfLife)
 
@@ -21,6 +25,8 @@ set(SOURCES
 	src/GameOfLife.h
 	src/WorldRenderer.cpp
 	src/WorldRenderer.h
+	src/Cell.cpp
+	src/Cell.h
 )
 
 add_executable(GameOfLife ${SOURCES})
