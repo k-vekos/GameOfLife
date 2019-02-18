@@ -63,9 +63,6 @@ int main()
 
 			// set cell under cursor to alive
 			game.setCell(x, y, true);
-
-			//std::cout << "mouse x: " << mousePosition.x << " grid x: " << x << std::endl;
-			//std::cout << "mouse y: " << mousePosition.y << " grid y: " << y << std::endl;
 		}
 		else {
 			// update the game

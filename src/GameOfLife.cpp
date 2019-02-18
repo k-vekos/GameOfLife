@@ -4,6 +4,8 @@
 #include <math.h>
 #include <thread>
 #include <mutex>
+#include <future>
+#include <chrono>
 
 GameOfLife::GameOfLife(sf::Vector2i size) : worldSize(size), world(size.x * size.y, false), worldBuffer(world)
 {
@@ -97,9 +99,9 @@ void GameOfLife::update()
 
 	// divide the grid into horizontal slices
 	int chunkSize = (worldSize.x * worldSize.y) / maxThreads;
-
+	
 	// split the work into threads
-	std::vector<std::thread> threads;
+	std::vector<std::future<void>> asyncTasks;
 	for (int i = 0; i < maxThreads; i++)
 	{
 		int start = i * chunkSize;
@@ -110,17 +112,14 @@ void GameOfLife::update()
 		else
 			end = (i + 1) * chunkSize;
 
-		std::thread t([this, start, end] {
-			this->doUpdate(start, end);
-		});
-
-		threads.push_back(std::move(t));
+		asyncTasks.push_back(
+			std::async(std::launch::async, [this, start, end] { this->doUpdate(start, end); })
+		);
 	}
-
-	for (std::thread & t : threads) {
-		if (t.joinable())
-			t.join();
-	}
+	
+	// Wait until all async tasks are finished
+	for (auto&& task : asyncTasks) // TODO Why use 'auto&&'?
+		task.get();
 
 	// apply updates
 	world.swap(worldBuffer);
