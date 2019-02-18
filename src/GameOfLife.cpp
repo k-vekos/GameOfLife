@@ -48,14 +48,19 @@ uint8_t& GameOfLife::getCell(int x, int y)
 	return world[y * worldSize.x + x];
 }
 
+sf::Vector2i GameOfLife::get2D(int index)
+{
+	int y = std::floor(index / worldSize.x);
+	int x = index % worldSize.x;
+	return sf::Vector2i(x, y);
+}
+
 // Update the cells from position start (inclusive) to position end (exclusive).
 void GameOfLife::doUpdate(int start, int end)
 {
 	for (int i = start; i < end; i++)
 	{
-		// TODO Try to calculate 2D wrapping without this?
-		int y = std::floor(i / worldSize.x);
-		int x = i % worldSize.x;
+		auto pos = get2D(i);
 
 		// # of alive neighbors
 		int aliveCount = 0;
@@ -70,17 +75,15 @@ void GameOfLife::doUpdate(int start, int end)
 					continue;
 
 				// wrap around to other side if neighbor would be outside world
-				int newX = (nX + x + worldSize.x) % worldSize.x;
-				int newY = (nY + y + worldSize.y) % worldSize.y;
+				int newX = (nX + pos.x + worldSize.x) % worldSize.x;
+				int newY = (nY + pos.y + worldSize.y) % worldSize.y;
 
 				aliveCount += getCell(newX, newY);
 			}
 		}
 
-		/* evaluate game rules on current cell */
-
-		sf::Vector2i pos(x, y); // current cell location
-		switch (getCell(x, y)) // is current cell alive?
+		// Evaluate game rules on current cell
+		switch (world[i]) // is current cell alive?
 		{
 		case true:
 			if (aliveCount < 2 || aliveCount > 3)
@@ -107,7 +110,6 @@ void GameOfLife::update()
 	//std::cout << maxThreads << std::endl;
 
 	// divide the grid into horizontal slices
-	//int chunkHeight = worldSize.y / maxThreads;
 	int chunkSize = (worldSize.x * worldSize.y) / maxThreads;
 
 	// split the work into threads
@@ -152,11 +154,11 @@ std::vector<sf::Vector2i> GameOfLife::getLiveCells()
 	std::vector<sf::Vector2i> liveCells;
 	liveCells.reserve(worldSize.x * worldSize.y); // reserve space for worst case (every cell is alive)
 
-	cellForEach([&](int x, int y)
-	{
-		if (getCell(x, y))
-			liveCells.push_back(sf::Vector2i(x, y));
-	});
+	for (int i = 0; i < worldSize.x * worldSize.y; i++) {
+		auto pos = get2D(i);
+		if (world[i])
+			liveCells.push_back(sf::Vector2i(pos.x, pos.y));
+	}
 
 	return liveCells;
 }

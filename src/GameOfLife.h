@@ -8,6 +8,7 @@ class GameOfLife
 public:
 	GameOfLife(int sizeX, int sizeY);
 	uint8_t & getCell(int x, int y);
+	sf::Vector2i get2D(int i);
 	void doUpdate(int start, int end);
 	virtual ~GameOfLife() = default;
 	void update();
