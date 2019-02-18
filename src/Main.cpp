@@ -39,6 +39,7 @@ int main()
 			if (event.type == sf::Event::Closed)
 				window.close();
 
+			// capture if the user is holding left mouse button down
 			if (event.type == sf::Event::MouseButtonPressed)
 			{
 				if (event.mouseButton.button == sf::Mouse::Left)
@@ -53,7 +54,7 @@ int main()
 		// clear the window with black color
 		window.clear(sf::Color::Black);
 
-		// handle mouse input
+		// if left mouse button held down then make cells under cursor alive and pause simulation
 		if (mouseHeld) {
 			auto mousePosition = sf::Mouse::getPosition(window);
 
@@ -65,7 +66,7 @@ int main()
 			game.setCell(x, y, true);
 		}
 		else {
-			// update the game
+			// update the game world
 			game.update();
 		}
 

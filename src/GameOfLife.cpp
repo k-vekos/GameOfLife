@@ -80,7 +80,6 @@ sf::Color GameOfLife::getThreadColor(int index)
 	}
 }
 
-// Update the cells from position start (inclusive) to position end (exclusive).
 std::vector<Cell> GameOfLife::doUpdate(int start, int end, int coreIdx)
 {
 	std::vector<Cell> aliveCells;

@@ -29,10 +29,10 @@ void WorldRenderer::addQuad(int gridX, int gridY, sf::Color color)
 	bottomLeft.color = color;
 	bottomRight.color = color;
 
-	m_cellVertexPoints.push_back(topLeft);
-	m_cellVertexPoints.push_back(bottomLeft);
-	m_cellVertexPoints.push_back(bottomRight);
-	m_cellVertexPoints.push_back(topRight);
+	m_vertexPoints.push_back(topLeft);
+	m_vertexPoints.push_back(bottomLeft);
+	m_vertexPoints.push_back(bottomRight);
+	m_vertexPoints.push_back(topRight);
 }
 
 void WorldRenderer::addBackgroundQuad(sf::Vector2f topLeft, sf::Vector2f bottomRight, sf::Color color)
@@ -46,26 +46,25 @@ void WorldRenderer::addBackgroundQuad(sf::Vector2f topLeft, sf::Vector2f bottomR
 	vTopRight.position = { bottomRight.x, topLeft.y };
 	vBottomLeft.position = { topLeft.x, bottomRight.y };
 	vBottomRight.position = bottomRight;
-
 	
 	vTopLeft.color = color;
 	vTopRight.color = color;
 	vBottomLeft.color = color;
 	vBottomRight.color = color;
 
-	m_cellVertexPoints.push_back(vTopLeft);
-	m_cellVertexPoints.push_back(vBottomLeft);
-	m_cellVertexPoints.push_back(vBottomRight);
-	m_cellVertexPoints.push_back(vTopRight);
+	m_vertexPoints.push_back(vTopLeft);
+	m_vertexPoints.push_back(vBottomLeft);
+	m_vertexPoints.push_back(vBottomRight);
+	m_vertexPoints.push_back(vTopRight);
 }
 
 void WorldRenderer::render(sf::RenderWindow & window, GameOfLife & game)
 {
 	// clear m_cellVertexPoints
-	m_cellVertexPoints.clear();
+	m_vertexPoints.clear();
 
 	// draw backgrounds for "core zones"
-	renderBackground(window, game);
+	renderBackgrounds(window, game);
 
 	// populate m_cellVertexPoints
 	for (auto cell : game.aliveCells)
@@ -74,10 +73,10 @@ void WorldRenderer::render(sf::RenderWindow & window, GameOfLife & game)
 	}
 
 	// draw quads to window
-	window.draw(m_cellVertexPoints.data(), m_cellVertexPoints.size(), sf::Quads);
+	window.draw(m_vertexPoints.data(), m_vertexPoints.size(), sf::Quads);
 }
 
-void WorldRenderer::renderBackground(sf::RenderWindow & window, GameOfLife & world)
+void WorldRenderer::renderBackgrounds(sf::RenderWindow & window, GameOfLife & world)
 {
 	int cellsPerCore = world.worldSize.x * world.worldSize.y / world.maxThreads;
 
