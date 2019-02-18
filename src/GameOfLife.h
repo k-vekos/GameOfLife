@@ -7,14 +7,15 @@ class GameOfLife
 {
 public:
 	GameOfLife(int sizeX, int sizeY);
-	void doUpdate(sf::Vector2i startPos, sf::Vector2i endPos);
+	uint8_t & getCell(int x, int y);
+	void doUpdate(int start, int end);
 	virtual ~GameOfLife() = default;
 	void update();
 	std::vector<sf::Vector2i> getLiveCells();	
 	void setCell(int x, int y, bool alive);
 
 private:
-	std::vector<std::vector<bool>> world;
+	std::vector<uint8_t> world;
 
 protected:
 	template<typename Func>
