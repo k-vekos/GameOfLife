@@ -6,7 +6,7 @@
 class GameOfLife
 {
 public:
-	GameOfLife(int sizeX, int sizeY);
+	GameOfLife(sf::Vector2i size);
 	uint8_t & getCell(int x, int y);
 	sf::Vector2i get2D(int i);
 	void doUpdate(int start, int end);
@@ -17,8 +17,6 @@ public:
 
 private:
 	std::vector<uint8_t> world;
-
-protected:
-	template<typename Func>
-	void cellForEach(Func function);
+	std::vector<uint8_t> worldBuffer;
+	sf::Vector2i worldSize;
 };

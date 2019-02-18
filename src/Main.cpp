@@ -20,7 +20,7 @@ int main()
 	window.setFramerateLimit(0);
 
 	// Create the game
-	GameOfLife game(WORLD_SIZE_X, WORLD_SIZE_Y);
+	GameOfLife game(sf::Vector2i(WORLD_SIZE_X, WORLD_SIZE_Y));
 
 	// Create a world renderer
 	WorldRenderer worldRenderer;

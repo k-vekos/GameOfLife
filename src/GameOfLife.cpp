@@ -5,20 +5,21 @@
 #include <thread>
 #include <mutex>
 
-std::mutex updateListLock;
-std::vector<sf::Vector2i> pendingUpdates;
-sf::Vector2i worldSize;
-
-GameOfLife::GameOfLife(int sizeX, int sizeY)
+GameOfLife::GameOfLife(sf::Vector2i size) : worldSize(size), world(size.x * size.y, false), worldBuffer(world)
 {
-	worldSize = sf::Vector2i(sizeX, sizeY);
+	int midX = worldSize.x / 2;
+	int midY = worldSize.y / 2;
 
-	// initialize world to specified size, all starting as dead
-	world = std::vector<uint8_t>(sizeX * sizeY, 0);
+	// place an "acorn"
+	getCell(midX + 0, midY + 0) = 1;
+	getCell(midX + 1, midY + 0) = 1;
+	getCell(midX + 4, midY + 0) = 1;
+	getCell(midX + 5, midY + 0) = 1;
+	getCell(midX + 6, midY + 0) = 1;
+	getCell(midX + 3, midY + 1) = 1;
+	getCell(midX + 1, midY + 2) = 1;
 
-	// reserve space for worst case (every cell needs to be updated)
-	pendingUpdates.reserve(sizeX * sizeY);
-
+	/*
 	// place a glider
 	getCell(1, 3) = true;
 	getCell(2, 4) = true;
@@ -34,6 +35,7 @@ GameOfLife::GameOfLife(int sizeX, int sizeY)
 	getCell(midX + 3, 2) = true;
 	getCell(midX + 3, 3) = true;
 	getCell(midX + 3, 4) = true;
+	*/
 
 	// place a glider
 	/*world[world.size() - 10 + 1][world[0].size() - 10 + 3] = true;
@@ -50,9 +52,9 @@ uint8_t& GameOfLife::getCell(int x, int y)
 
 sf::Vector2i GameOfLife::get2D(int index)
 {
-	int y = std::floor(index / worldSize.x);
+	int y = index / worldSize.x;
 	int x = index % worldSize.x;
-	return sf::Vector2i(x, y);
+	return { x, y };
 }
 
 // Update the cells from position start (inclusive) to position end (exclusive).
@@ -83,31 +85,15 @@ void GameOfLife::doUpdate(int start, int end)
 		}
 
 		// Evaluate game rules on current cell
-		switch (world[i]) // is current cell alive?
-		{
-		case true:
-			if (aliveCount < 2 || aliveCount > 3)
-			{
-				std::lock_guard<std::mutex> lock(updateListLock);
-				pendingUpdates.push_back(pos); // this cell will be toggled to dead
-			}
-			break;
-
-		case false:
-			if (aliveCount == 3)
-			{
-				std::lock_guard<std::mutex> lock(updateListLock);
-				pendingUpdates.push_back(pos); // this cell will be toggled to alive
-			}
-			break;
-		}
+		bool stays = aliveCount == 2 || aliveCount == 3;
+		bool spawns = aliveCount == 3;
+		worldBuffer[i] = world[i] ? stays : spawns;
 	}
 }
 
 void GameOfLife::update()
 {
 	unsigned maxThreads = std::thread::hardware_concurrency();
-	//std::cout << maxThreads << std::endl;
 
 	// divide the grid into horizontal slices
 	int chunkSize = (worldSize.x * worldSize.y) / maxThreads;
@@ -128,8 +114,6 @@ void GameOfLife::update()
 			this->doUpdate(start, end);
 		});
 
-		//std::cout << "thread #" << i << ": cells " << start << "-" << end << std::endl;
-
 		threads.push_back(std::move(t));
 	}
 
@@ -138,15 +122,8 @@ void GameOfLife::update()
 			t.join();
 	}
 
-	// apply updates to cell states
-	for each (auto loc in pendingUpdates)
-	{
-		// toggle the dead/alive state of every cell with a pending update
-		getCell(loc.x, loc.y) = !getCell(loc.x, loc.y);
-	}
-
-	// clear updates
-	pendingUpdates.clear();
+	// apply updates
+	world.swap(worldBuffer);
 }
 
 std::vector<sf::Vector2i> GameOfLife::getLiveCells()
@@ -169,14 +146,4 @@ void GameOfLife::setCell(int x, int y, bool alive)
 	x = std::max(std::min(x, (int) worldSize.x - 1), 0);
 	y = std::max(std::min(y, (int) worldSize.y - 1), 0);
 	getCell(x, y) = alive;
-}
-
-template<typename Func>
-void GameOfLife::cellForEach(Func function)
-{
-	for (int x = 0; x < worldSize.x; x++) {
-		for (int y = 0; y < worldSize.y; y++) {
-			function(x, y);
-		}
-	}
 }
