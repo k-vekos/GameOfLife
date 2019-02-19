@@ -1,42 +1,68 @@
 ﻿#include "GameOfLife.h"
+#include "Cell.h"
 #include <iostream>
 #include <vector>
 #include <math.h>
+#include <thread>
+#include <mutex>
+#include <future>
+#include <chrono>
 
-GameOfLife::GameOfLife()
+GameOfLife::GameOfLife(sf::Vector2i size) : worldSize(size), world(size.x * size.y, false), worldBuffer(world), maxThreads(std::thread::hardware_concurrency())
 {
-	// initialize cell state and prepare the quads for rendering
-	for (int x = 0; x < WORLD_SIZE_X; x++) {
-		for (int y = 0; y < WORLD_SIZE_Y; y++) {
-			// initialize cell state
-			world[x][y] = false;
-		}
-	}
+	aliveCells.reserve(size.x * size.y); // reserve space for worst-case (all cells are alive)
 
-
-	// place a glider
-	world[1][3] = true;
-	world[2][4] = true;
-	world[3][2] = true;
-	world[3][3] = true;
-	world[3][4] = true;
-
-	// place a glider
-	world[WORLD_SIZE_X - 10 + 1][WORLD_SIZE_Y - 10 + 3] = true;
-	world[WORLD_SIZE_X - 10 + 2][WORLD_SIZE_Y - 10 + 4] = true;
-	world[WORLD_SIZE_X - 10 + 3][WORLD_SIZE_Y - 10 + 2] = true;
-	world[WORLD_SIZE_X - 10 + 3][WORLD_SIZE_Y - 10 + 3] = true;
-	world[WORLD_SIZE_X - 10 + 3][WORLD_SIZE_Y - 10 + 4] = true;
+	// place an "acorn"
+	int midX = worldSize.x / 2;
+	int midY = worldSize.y / 2;	
+	getCell(midX + 0, midY + 0) = 1;
+	getCell(midX + 1, midY + 0) = 1;
+	getCell(midX + 4, midY + 0) = 1;
+	getCell(midX + 5, midY + 0) = 1;
+	getCell(midX + 6, midY + 0) = 1;
+	getCell(midX + 3, midY + 1) = 1;
+	getCell(midX + 1, midY + 2) = 1;
 }
 
-void GameOfLife::update()
+uint8_t& GameOfLife::getCell(int x, int y)
 {
-	// updates to be applied after all cells evaluated
-	std::vector<sf::Vector2i> updates;
+	return world[y * worldSize.x + x];
+}
 
-	// evaluate the state of every cell
-	cellForEach([&](int x, int y)
+sf::Vector2i GameOfLife::get2D(int index)
+{
+	int y = index / worldSize.x;
+	int x = index % worldSize.x;
+	return { x, y };
+}
+
+sf::Color GameOfLife::getThreadColor(int index)
+{
+	switch (index % 4) {
+		case 0:
+			return sf::Color::Red;
+			break;
+		case 1:
+			return sf::Color::Green;
+			break;
+		case 2:
+			return sf::Color::Blue;
+			break;
+		case 3:
+			return sf::Color::Yellow;
+			break;
+	}
+}
+
+std::vector<Cell> GameOfLife::doUpdate(int start, int end, int coreIdx)
+{
+	std::vector<Cell> aliveCells;
+	aliveCells.reserve(end - start); // reserve space for worst case (all alive cells)
+
+	for (int i = start; i < end; i++)
 	{
+		auto pos = get2D(i);
+
 		// # of alive neighbors
 		int aliveCount = 0;
 
@@ -50,75 +76,66 @@ void GameOfLife::update()
 					continue;
 
 				// wrap around to other side if neighbor would be outside world
-				int newX = std::fmod(nX + x + WORLD_SIZE_X, WORLD_SIZE_X);
-				int newY = std::fmod(nY + y + WORLD_SIZE_Y, WORLD_SIZE_Y);
+				int newX = (nX + pos.x + worldSize.x) % worldSize.x;
+				int newY = (nY + pos.y + worldSize.y) % worldSize.y;
 
-				if (world[newX][newY])
-					aliveCount++;
+				aliveCount += getCell(newX, newY);
 			}
 		}
 
+		// Evaluate game rules on current cell
+		bool dies = aliveCount == 2 || aliveCount == 3;
+		bool lives = aliveCount == 3;
+		worldBuffer[i] = world[i] ? dies : lives;
 
-		/* evaluate game rules on current cell */
-
-		// current cell location
-		sf::Vector2i pos(x, y);
-
-		switch (world[x][y]) // is current cell alive?
-		{
-			case true:
-				if (aliveCount < 2 || aliveCount > 3)
-				{
-					updates.push_back(pos); // this cell will be toggled to dead
-				}
-				break;
-
-			case false:
-				if (aliveCount == 3)
-				{
-					updates.push_back(pos); // this cell will be toggled to alive
-				}
-				break;
-		}
-	});
-
-	// apply updates to cell states
-	for each (auto loc in updates)
-	{
-		// toggle the dead/alive state of every cell with a pending update
-		world[loc.x][loc.y] = !world[loc.x][loc.y];
+		// if the cell's alive push it into the vector
+		if (worldBuffer[i])
+			aliveCells.push_back(Cell(pos, getThreadColor(coreIdx)));
 	}
+
+	return aliveCells;
 }
 
-std::vector<sf::Vector2i> GameOfLife::getLiveCells()
+void GameOfLife::update()
 {
-	std::vector<sf::Vector2i> liveCells;
-	liveCells.reserve(WORLD_SIZE_X * WORLD_SIZE_Y); // reserve space for worst case (every cell is alive)
+	// clear aliveCells cache
+	aliveCells.clear();
 
-	cellForEach([&](int x, int y)
+	// divide the grid into horizontal slices
+	int chunkSize = (worldSize.x * worldSize.y) / maxThreads;
+	
+	// split the work into threads
+	std::vector<std::future<std::vector<Cell>>> asyncTasks;
+	for (int i = 0; i < maxThreads; i++)
 	{
-		if (world[x][y])
-			liveCells.push_back(sf::Vector2i(x, y));
-	});
+		int start = i * chunkSize;
 
-	return liveCells;
+		int end;
+		if (i == maxThreads - 1) // if this is the last thread, endPos will be set to cover remaining "height"
+			end = worldSize.x * worldSize.y;
+		else
+			end = (i + 1) * chunkSize;
+
+		asyncTasks.push_back(
+			std::async(std::launch::async, [this, start, end, i] { return this->doUpdate(start, end, i); })
+		);
+	}
+	
+	// Wait until all async tasks are finished
+	for (auto&& task : asyncTasks) { // TODO Why use 'auto&&'?
+		auto aliveCellsPartial = task.get();
+		aliveCells.insert(std::end(aliveCells), std::begin(aliveCellsPartial), std::end(aliveCellsPartial));
+	}
+
+	// apply updates
+	world.swap(worldBuffer);
 }
 
 void GameOfLife::setCell(int x, int y, bool alive)
 {
 	// constrain x and y
-	x = std::max(std::min(x, WORLD_SIZE_X - 1), 0);
-	y = std::max(std::min(y, WORLD_SIZE_Y - 1), 0);
-
-	world[x][y] = alive;
-}
-
-template<typename Func>
-void GameOfLife::cellForEach(Func function)
-{
-	for (int x = 0; x < WORLD_SIZE_X; x++) {
-		for (int y = 0; y < WORLD_SIZE_Y; y++) {
-			function(x, y);
-		}
-	}
+	x = std::max(std::min(x, (int) worldSize.x - 1), 0);
+	y = std::max(std::min(y, (int) worldSize.y - 1), 0);
+	getCell(x, y) = alive;
+	aliveCells.push_back(Cell(sf::Vector2i(x, y), sf::Color::White));
 }

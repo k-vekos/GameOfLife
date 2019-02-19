@@ -5,6 +5,9 @@
 
 using namespace std;
 
+static const int WORLD_SIZE_X = 256;
+static const int WORLD_SIZE_Y = 256;
+
 int main()
 {
 	// create the window
@@ -17,7 +20,7 @@ int main()
 	window.setFramerateLimit(0);
 
 	// Create the game
-	GameOfLife game;
+	GameOfLife game(sf::Vector2i(WORLD_SIZE_X, WORLD_SIZE_Y));
 
 	// Create a world renderer
 	WorldRenderer worldRenderer;
@@ -36,6 +39,7 @@ int main()
 			if (event.type == sf::Event::Closed)
 				window.close();
 
+			// capture if the user is holding left mouse button down
 			if (event.type == sf::Event::MouseButtonPressed)
 			{
 				if (event.mouseButton.button == sf::Mouse::Left)
@@ -50,22 +54,19 @@ int main()
 		// clear the window with black color
 		window.clear(sf::Color::Black);
 
-		// handle mouse input
+		// if left mouse button held down then make cells under cursor alive and pause simulation
 		if (mouseHeld) {
 			auto mousePosition = sf::Mouse::getPosition(window);
 
 			// normalize mouse pos
-			int x = (mousePosition.x / 512.0f) * GameOfLife::WORLD_SIZE_X;
-			int y = (mousePosition.y / 512.0f) * GameOfLife::WORLD_SIZE_Y;
+			int x = (mousePosition.x / 512.0f) * WORLD_SIZE_X;
+			int y = (mousePosition.y / 512.0f) * WORLD_SIZE_Y;
 
 			// set cell under cursor to alive
 			game.setCell(x, y, true);
-
-			//std::cout << "mouse x: " << mousePosition.x << " grid x: " << x << std::endl;
-			//std::cout << "mouse y: " << mousePosition.y << " grid y: " << y << std::endl;
 		}
 		else {
-			// update the game
+			// update the game world
 			game.update();
 		}
 

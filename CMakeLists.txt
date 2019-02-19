@@ -3,13 +3,17 @@
 #
 cmake_minimum_required (VERSION 3.8)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 # Give the project a name
 project(GameOfLife)
 
 # Include SFML
 set(SFML_STATIC_LIBRARIES TRUE)
 #set(SFML_ROOT C:/SFML-2.5.1)
-set (CMAKE_PREFIX_PATH "C:\\SFML-2.5.1\\lib\\cmake")
+set (CMAKE_PREFIX_PATH "C:\\SFML-2.5.1\\lib\\cmake;D:\\SFML-2.5.1\\lib\\cmake")
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 
 # Add source to this project's executable.
@@ -21,6 +25,8 @@ set(SOURCES
 	src/GameOfLife.h
 	src/WorldRenderer.cpp
 	src/WorldRenderer.h
+	src/Cell.cpp
+	src/Cell.h
 )
 
 add_executable(GameOfLife ${SOURCES})
