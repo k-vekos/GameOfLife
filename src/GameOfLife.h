@@ -26,16 +26,22 @@ public:
 	// Set the value of the cell at the given grid position to the given alive state.
 	void setCell(int x, int y, bool alive);
 
+	// A cache of all the alive cells at the end of the update() call.
 	std::vector<Cell> aliveCells;
 
+	// The maximum amount of threads to be used for update().
 	const int maxThreads;
 
+	// Represents the width and height of the simulated world.
 	sf::Vector2i worldSize;
 
+	// Returns a color to use for cells/backgrounds based on the thread ID #.
 	sf::Color getThreadColor(int index);
 
 private:
+	// A 1D representation of the 2D grid that is the world.
 	std::vector<uint8_t> world;
 
+	// A buffer where the next world state is prepared, swapped with world at end of update().
 	std::vector<uint8_t> worldBuffer;	
 };

@@ -12,10 +12,9 @@ GameOfLife::GameOfLife(sf::Vector2i size) : worldSize(size), world(size.x * size
 {
 	aliveCells.reserve(size.x * size.y); // reserve space for worst-case (all cells are alive)
 
-	int midX = worldSize.x / 2;
-	int midY = worldSize.y / 2;
-
 	// place an "acorn"
+	int midX = worldSize.x / 2;
+	int midY = worldSize.y / 2;	
 	getCell(midX + 0, midY + 0) = 1;
 	getCell(midX + 1, midY + 0) = 1;
 	getCell(midX + 4, midY + 0) = 1;
@@ -23,31 +22,6 @@ GameOfLife::GameOfLife(sf::Vector2i size) : worldSize(size), world(size.x * size
 	getCell(midX + 6, midY + 0) = 1;
 	getCell(midX + 3, midY + 1) = 1;
 	getCell(midX + 1, midY + 2) = 1;
-
-	/*
-	// place a glider
-	getCell(1, 3) = true;
-	getCell(2, 4) = true;
-	getCell(3, 2) = true;
-	getCell(3, 3) = true;
-	getCell(3, 4) = true;
-
-	// place a glider at top-center
-	int midX = std::floor(worldSize.x / 2);
-	//getCell(std::floor(worldSize.x / 2), 0) = true;
-	getCell(midX + 1, 3) = true;
-	getCell(midX + 2, 4) = true;
-	getCell(midX + 3, 2) = true;
-	getCell(midX + 3, 3) = true;
-	getCell(midX + 3, 4) = true;
-	*/
-
-	// place a glider
-	/*world[world.size() - 10 + 1][world[0].size() - 10 + 3] = true;
-	world[world.size() - 10 + 2][world[0].size() - 10 + 4] = true;
-	world[world.size() - 10 + 3][world[0].size() - 10 + 2] = true;
-	world[world.size() - 10 + 3][world[0].size() - 10 + 3] = true;
-	world[world.size() - 10 + 3][world[0].size() - 10 + 4] = true;*/
 }
 
 uint8_t& GameOfLife::getCell(int x, int y)
@@ -156,20 +130,6 @@ void GameOfLife::update()
 	// apply updates
 	world.swap(worldBuffer);
 }
-
-//std::vector<Cell> GameOfLife::getLiveCells()
-//{
-//	std::vector<Cell> liveCells;
-//	liveCells.reserve(worldSize.x * worldSize.y); // reserve space for worst case (every cell is alive)
-//
-//	for (int i = 0; i < worldSize.x * worldSize.y; i++) {
-//		auto pos = get2D(i);
-//		if (world[i])
-//			liveCells.push_back(Cell(sf::Vector2i(pos.x, pos.y), sf::Color::Red));
-//	}
-//
-//	return liveCells;
-//}
 
 void GameOfLife::setCell(int x, int y, bool alive)
 {
