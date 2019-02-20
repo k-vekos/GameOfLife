@@ -1,7 +1,8 @@
-﻿# CMakeList.txt : CMake project for GameOfLife, include source and define
-# project specific logic here.
+﻿# CMakeList.txt : CMake project for GameOfLife
 #
 cmake_minimum_required (VERSION 3.8)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -Werror -Wall -Wextra -Wwrite-strings -Wno-parentheses -Weffc++")
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -12,12 +13,11 @@ project(GameOfLife)
 
 # Include SFML
 set(SFML_STATIC_LIBRARIES TRUE)
-#set(SFML_ROOT C:/SFML-2.5.1)
-set (CMAKE_PREFIX_PATH "C:\\SFML-2.5.1\\lib\\cmake;D:\\SFML-2.5.1\\lib\\cmake")
+set(CMAKE_PREFIX_PATH "C:\\SFML-2.5.1\\lib\\cmake;D:\\SFML-2.5.1\\lib\\cmake")
 find_package(SFML 2.5 COMPONENTS graphics REQUIRED)
 
-# Add source to this project's executable.
-#add_executable (GameOfLife "src/GameOfLife.cpp" "src/GameOfLife.h")
+# Include OpenMP
+find_package(OpenMP)
 
 set(SOURCES 
 	src/Main.cpp
@@ -25,13 +25,9 @@ set(SOURCES
 	src/GameOfLife.h
 	src/WorldRenderer.cpp
 	src/WorldRenderer.h
-	src/Cell.cpp
 	src/Cell.h
 )
 
 add_executable(GameOfLife ${SOURCES})
 
-# Link SFML
-target_link_libraries(GameOfLife sfml-graphics)
-
-# TODO: Add tests and install targets if needed.
+target_link_libraries(GameOfLife sfml-graphics OpenMP::OpenMP_CXX)

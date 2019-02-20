@@ -7,25 +7,23 @@
 class WorldRenderer
 {
 	public:
-		WorldRenderer();
-
-		~WorldRenderer();
+		WorldRenderer() = default;
 
 		// Renders the given game to the given window.
 		void render(sf::RenderWindow& window, GameOfLife& world);
 
 	private:
 		// Vertex points for the pending draw call.
-		std::vector<sf::Vertex> m_vertexPoints;
+		std::vector<sf::Vertex> m_vertexPoints = {};
 
 		// Adds a cell-sized quad in the "grid position" specified.
-		void addQuad(int gridX, int gridY, sf::Color color);
+		void addQuad(const Cell& cell);
 
-		// Adds a darker colored quad in the given coordinates.
-		void addBackgroundQuad(sf::Vector2f topLeft, sf::Vector2f bottomRight, sf::Color color);
+		// Adds a quad with the given coordinates with the given color.
+		void addQuad(sf::Vector2f topLeft, sf::Vector2f bottomRight, sf::Color color);
 
 		// Renders the background colors which correspond to the thread ID and the cells they are updating.
-		void renderBackgrounds(sf::RenderWindow& window, GameOfLife& world);
+		void renderBackgrounds(GameOfLife& world);
 
 		// Returns a darker variant of the given color.
 		sf::Color darkenColor(sf::Color input);
