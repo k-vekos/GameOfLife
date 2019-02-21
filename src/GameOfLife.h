@@ -41,5 +41,7 @@ private:
 	std::vector<std::uint8_t> world;
 
 	// A buffer where the next world state is prepared, swapped with world at end of update().
-	std::vector<std::uint8_t> worldBuffer;	
+	std::vector<std::uint8_t> worldBuffer;
+
+
 };
