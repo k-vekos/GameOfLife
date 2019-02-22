@@ -19,15 +19,15 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\Cell.h" />
+    <ClInclude Include="src\PointHash.h" />
     <ClInclude Include="src\GameOfLife.h" />
-    <ClInclude Include="src\Point.h" />
+    <ClInclude Include="src\Cell.h" />
     <ClInclude Include="src\WorldRenderer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\GameOfLife.cpp" />
     <ClCompile Include="src\Main.cpp" />
-    <ClCompile Include="src\Point.cpp" />
+    <ClCompile Include="src\Cell.cpp" />
     <ClCompile Include="src\WorldRenderer.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

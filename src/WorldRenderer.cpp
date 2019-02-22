@@ -5,7 +5,7 @@
 void WorldRenderer::addQuad(const Cell& cell)
 {
 
-	sf::Vector2f topLeft{ cell.position.x * 1.0f, cell.position.y * 1.0f };
+	sf::Vector2f topLeft{ cell.x * 1.0f, cell.y * 1.0f };
 	sf::Vector2f bottomRight{ topLeft.x + 1, topLeft.y + 1 };
 	addQuad(topLeft, bottomRight, cell.color);
 }
@@ -28,7 +28,7 @@ void WorldRenderer::render(sf::RenderWindow & window, GameOfLife & game)
 	m_vertexPoints.clear();
 
 	// draw backgrounds for "core zones"
-	renderBackgrounds(game);
+	//renderBackgrounds(game);
 
 	// populate m_cellVertexPoints
 	for (auto const& cell : game.getLivingCells()) {

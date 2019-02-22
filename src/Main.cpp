@@ -47,21 +47,24 @@ int main()
 		// clear the window with black color
 		window.clear(sf::Color::Black);
 
-		// if left mouse button held down then make cells under cursor alive and pause simulation
-		if (mouseHeld) {
-			auto mousePosition = sf::Mouse::getPosition(window);
+		//// if left mouse button held down then make cells under cursor alive and pause simulation
+		//if (mouseHeld) {
+		//	auto mousePosition = sf::Mouse::getPosition(window);
 
-			// normalize mouse pos
-			int x = mousePosition.x * World_Size.x / window.getSize().x;
-			int y = mousePosition.y * World_Size.y / window.getSize().y;
+		//	// normalize mouse pos
+		//	int x = mousePosition.x * World_Size.x / window.getSize().x;
+		//	int y = mousePosition.y * World_Size.y / window.getSize().y;
 
-			// set cell under cursor to alive
-			game.setCell(x, y, true);
-		}
-		else {
-			// update the game world
-			game.update();
-		}
+		//	// set cell under cursor to alive
+		//	game.setCell(x, y, true);
+		//}
+		//else {
+		//	// update the game world
+		//	game.update();
+		//}
+
+		// update w/ mouse draw disabled
+		game.update();
 
 		// render the game
 		worldRenderer.render(window, game);

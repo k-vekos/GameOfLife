@@ -6,7 +6,7 @@
 
 GameOfLife::GameOfLife(sf::Vector2i size) : worldSize(size), world(size.x * size.y, false), worldBuffer(world)
 {
-	aliveCells.reserve(size.x * size.y); // reserve space for worst-case (all cells are alive)
+	//aliveCells.reserve(size.x * size.y); // reserve space for worst-case (all cells are alive)
 
 	// place an "acorn"
 	int midX = worldSize.x / 2;
@@ -18,6 +18,24 @@ GameOfLife::GameOfLife(sf::Vector2i size) : worldSize(size), world(size.x * size
 	getCell(midX + 6, midY + 0) = 1;
 	getCell(midX + 3, midY + 1) = 1;
 	getCell(midX + 1, midY + 2) = 1;
+
+	// build a list of all alive cells and a list of each one's neighbors
+	for (int i = 0; i < worldSize.x * worldSize.y; ++i) {
+		auto pos = get2D(i);
+
+		if (world[i]) {
+			// get a new Cell object for this alive cell
+			Cell aliveCell{ pos.x, pos.y };
+
+			// add to alive cells list
+			aliveCells.insert(aliveCell);
+
+			// add 1 to the count of all of its neighbors in the alive cells neighbors list
+			for (const Cell& n : aliveCell.neighbors(worldSize)) {
+				aliveCellNeighbors[n]++;
+			}
+		}
+	}
 }
 
 std::uint8_t& GameOfLife::getCell(int x, int y)
@@ -54,52 +72,104 @@ sf::Color GameOfLife::getThreadColor(int index)
 
 void GameOfLife::update()
 {
-	// clear aliveCells cache
-	aliveCells.clear();
-
-#pragma omp parallel
-	{
-		// private, per-thread variables
-		auto this_thread_color = getThreadColor(omp_get_thread_num());
-		std::vector<Cell> next_generation;
-
-#pragma omp for
-		for (int i = 0; i < worldSize.x * worldSize.y; ++i) {
-			auto pos = get2D(i);
-
-			int aliveCount = 0;
-
-			// check all 8 neighbors
-			for (int nX = -1; nX <= 1; ++nX) {
-				for (int nY = -1; nY <= 1; ++nY) {
-					// skip the current cell
-					if (nX == 0 && nY == 0) continue;
-
-					// wrap around to other side if neighbor would be outside world
-					int newX = (nX + pos.x + worldSize.x) % worldSize.x;
-					int newY = (nY + pos.y + worldSize.y) % worldSize.y;
-
-					aliveCount += getCell(newX, newY);
-				}
-			}
-
-			// Evaluate game rules on current cell
-			bool dies = aliveCount == 2 || aliveCount == 3;
-			bool lives = aliveCount == 3;
-			worldBuffer[i] = world[i] ? dies : lives;
-
-			// if the cell's alive push it into the vector
-			if (worldBuffer[i])
-				next_generation.emplace_back(Cell{ pos, this_thread_color });
+	std::vector<Cell> toDie;
+	std::vector<Cell> toLive;
+	for (auto& c : aliveCells) {
+		int liveCount = aliveCellNeighbors[c];
+		if (liveCount < 2 || liveCount > 3) {
+			toDie.push_back(c);
 		}
-
-#pragma omp critical
-		aliveCells.insert(aliveCells.end(), next_generation.begin(), next_generation.end());
+		else {
+			toLive.push_back(c);
+		}
 	}
 
-	// apply updates
-	world.swap(worldBuffer);
+	for (auto& c : aliveCellNeighbors) {
+		if (c.first.alive)
+			continue;
+
+		if (aliveCellNeighbors[c.first] == 3) {
+			toLive.push_back(c.first);
+		}
+	}
+
+	for (const Cell& deadCell : toDie) {
+		setDead(deadCell);
+	}
+
+	for (const Cell& liveCell : toLive) {
+		setAlive(liveCell);
+	}
 }
+
+void GameOfLife::setDead(Cell cell) {
+	// decrement count of all neighbors
+	for (const Cell& n : cell.neighbors(worldSize)) {
+		aliveCellNeighbors[n]--;
+	}
+
+	// remove self from alive cells list
+	aliveCells.erase(cell);
+}
+
+void GameOfLife::setAlive(Cell cell) {
+	// increment count of all neighbors
+	for (const Cell& n : cell.neighbors(worldSize)) {
+		aliveCellNeighbors[n]++;
+	}
+
+	// add self to alive cells list
+	aliveCells.insert(cell);
+}
+
+//void GameOfLife::updateMP()
+//{
+//	// clear aliveCells cache
+//	aliveCells.clear();
+//
+//#pragma omp parallel
+//	{
+//		// private, per-thread variables
+//		auto this_thread_color = getThreadColor(omp_get_thread_num());
+//		std::vector<Cell> next_generation;
+//
+//#pragma omp for
+//		for (int i = 0; i < worldSize.x * worldSize.y; ++i) {
+//			auto pos = get2D(i);
+//
+//			int aliveCount = 0;
+//
+//			// check all 8 neighbors
+//			for (int nX = -1; nX <= 1; ++nX) {
+//				for (int nY = -1; nY <= 1; ++nY) {
+//					// skip the current cell
+//					if (nX == 0 && nY == 0) continue;
+//
+//					// wrap around to other side if neighbor would be outside world
+//					int newX = (nX + pos.x + worldSize.x) % worldSize.x;
+//					int newY = (nY + pos.y + worldSize.y) % worldSize.y;
+//
+//					aliveCount += getCell(newX, newY);
+//				}
+//			}
+//
+//			// Evaluate game rules on current cell
+//			bool dies = aliveCount == 2 || aliveCount == 3;
+//			bool lives = aliveCount == 3;
+//			worldBuffer[i] = world[i] ? dies : lives;
+//
+//			// if the cell's alive push it into the vector
+//			if (worldBuffer[i])
+//				next_generation.emplace_back(Cell{ pos, this_thread_color });
+//		}
+//
+//#pragma omp critical
+//		//aliveCells.insert(aliveCells.end(), next_generation.begin(), next_generation.end());
+//	}
+//
+//	// apply updates
+//	world.swap(worldBuffer);
+//}
 
 void GameOfLife::setCell(int x, int y, bool alive)
 {
@@ -107,5 +177,5 @@ void GameOfLife::setCell(int x, int y, bool alive)
 	x = std::max(std::min(x, (int) worldSize.x - 1), 0);
 	y = std::max(std::min(y, (int) worldSize.y - 1), 0);
 	getCell(x, y) = alive;
-	aliveCells.push_back(Cell{ {x, y}, sf::Color::White });
+	//aliveCells.push_back(Cell{ {x, y}, sf::Color::White });
 }
