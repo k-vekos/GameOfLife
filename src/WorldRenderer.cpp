@@ -1,61 +1,25 @@
 #include "WorldRenderer.h"
 
-WorldRenderer::WorldRenderer()
+#include <omp.h>
+
+void WorldRenderer::addQuad(const Cell& cell)
 {
+
+	sf::Vector2f topLeft{ cell.position.x * 1.0f, cell.position.y * 1.0f };
+	sf::Vector2f bottomRight{ topLeft.x + 1, topLeft.y + 1 };
+	addQuad(topLeft, bottomRight, cell.color);
 }
 
-
-WorldRenderer::~WorldRenderer()
+void WorldRenderer::addQuad(sf::Vector2f topLeft, sf::Vector2f bottomRight, sf::Color color)
 {
-}
+	auto topRight = topLeft;
+	auto bottomLeft = bottomRight;
+	std::swap(topRight.x, bottomLeft.x);
 
-void WorldRenderer::addQuad(int gridX, int gridY, sf::Color color)
-{
-	sf::Vertex topLeft;
-	sf::Vertex topRight;
-	sf::Vertex bottomLeft;
-	sf::Vertex bottomRight;
-
-	float gridXFloat = gridX * 1.0f;
-	float gridYFloat = gridY * 1.0f;
-
-	topLeft.position = { gridXFloat, gridYFloat };
-	topRight.position = { gridXFloat + 1, gridYFloat };
-	bottomLeft.position = { gridXFloat, gridYFloat + 1 };
-	bottomRight.position = { gridXFloat + 1, gridYFloat + 1 };
-
-	topLeft.color = color;
-	topRight.color = color;
-	bottomLeft.color = color;
-	bottomRight.color = color;
-
-	m_vertexPoints.push_back(topLeft);
-	m_vertexPoints.push_back(bottomLeft);
-	m_vertexPoints.push_back(bottomRight);
-	m_vertexPoints.push_back(topRight);
-}
-
-void WorldRenderer::addBackgroundQuad(sf::Vector2f topLeft, sf::Vector2f bottomRight, sf::Color color)
-{
-	sf::Vertex vTopLeft;
-	sf::Vertex vTopRight;
-	sf::Vertex vBottomLeft;
-	sf::Vertex vBottomRight;
-
-	vTopLeft.position = topLeft;
-	vTopRight.position = { bottomRight.x, topLeft.y };
-	vBottomLeft.position = { topLeft.x, bottomRight.y };
-	vBottomRight.position = bottomRight;
-	
-	vTopLeft.color = color;
-	vTopRight.color = color;
-	vBottomLeft.color = color;
-	vBottomRight.color = color;
-
-	m_vertexPoints.push_back(vTopLeft);
-	m_vertexPoints.push_back(vBottomLeft);
-	m_vertexPoints.push_back(vBottomRight);
-	m_vertexPoints.push_back(vTopRight);
+	m_vertexPoints.emplace_back(topLeft, color);
+	m_vertexPoints.emplace_back(bottomLeft, color);
+	m_vertexPoints.emplace_back(bottomRight, color);
+	m_vertexPoints.emplace_back(topRight, color);
 }
 
 void WorldRenderer::render(sf::RenderWindow & window, GameOfLife & game)
@@ -64,41 +28,30 @@ void WorldRenderer::render(sf::RenderWindow & window, GameOfLife & game)
 	m_vertexPoints.clear();
 
 	// draw backgrounds for "core zones"
-	renderBackgrounds(window, game);
+	renderBackgrounds(game);
 
 	// populate m_cellVertexPoints
-	for (auto cell : game.aliveCells)
-	{
-		addQuad(cell.position.x, cell.position.y, cell.color);
+	for (auto const& cell : game.getLivingCells()) {
+		addQuad(cell);
 	}
 
 	// draw quads to window
 	window.draw(m_vertexPoints.data(), m_vertexPoints.size(), sf::Quads);
 }
 
-void WorldRenderer::renderBackgrounds(sf::RenderWindow & window, GameOfLife & world)
+void WorldRenderer::renderBackgrounds(GameOfLife & world)
 {
-	int cellsPerCore = world.worldSize.x * world.worldSize.y / world.maxThreads;
-
-	// first draw the background color of the final core index
-	addBackgroundQuad(
-		sf::Vector2f(0, 0),
-		sf::Vector2f(world.worldSize.x, world.worldSize.y),
-		darkenColor(world.getThreadColor(world.maxThreads - 1))
-	);
-
-	// draw the remaining core background colors on top, in reverse order
-	for (int i = world.maxThreads - 2; i >= 0; i--) {
-		auto end = world.get2D(cellsPerCore * (i + 1));
-		addBackgroundQuad(
-			sf::Vector2f(0, 0),
-			sf::Vector2f(world.worldSize.x, end.y),
-			darkenColor(world.getThreadColor(i))
-		);
+	auto const maxThreads = omp_get_max_threads();
+	auto const threadHeight = world.worldSize.y / maxThreads;
+	
+	for (int i = 0; i < maxThreads; ++i) {
+		sf::Vector2f topLeft{ 0, 1.f * i * threadHeight };
+		sf::Vector2f bottomRight{ 1.f * world.worldSize.x + 1, topLeft.y + 1.f * world.worldSize.y / maxThreads + 1 };
+		addQuad(topLeft, bottomRight, darkenColor(world.getThreadColor(i)));
 	}
 }
 
 sf::Color WorldRenderer::darkenColor(sf::Color input)
 {
-	return sf::Color(input.r / 3, input.g / 3, input.b / 3);
+	return sf::Color(input.r / 4, input.g / 4, input.b / 4);
 }

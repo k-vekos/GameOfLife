@@ -1,12 +1,10 @@
 #pragma once
 
-#include <SFML/Graphics.hpp>
+#include <SFML/Graphics/Color.hpp>
+#include <SFML/System/Vector2.hpp>
 
-class Cell
+struct Cell
 {
-public:
-	Cell(sf::Vector2i position, sf::Color color);
-	~Cell();
 	sf::Vector2i position;
 	sf::Color color;
 };
