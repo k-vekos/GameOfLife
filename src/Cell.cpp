@@ -1,11 +1,11 @@
 #include "Cell.h"
 
-inline bool Cell::operator==(const Cell & p) const
+bool Cell::operator==(const Cell & other) const
 {
-	return x == p.x && y == p.y;
+	return x == other.x && y == other.y;
 }
 
-inline std::array<Cell, 8> Cell::neighbors(sf::Vector2i worldSize) const
+std::array<Cell, 8> Cell::neighbors(sf::Vector2i worldSize) const
 {
 	std::array<Cell, 8> neighborCells;
 

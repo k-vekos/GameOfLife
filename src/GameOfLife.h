@@ -13,11 +13,6 @@
 
 static const int Hash_Size = 8192;
 
-size_t cellHash(const Cell & cell)
-{
-	return cell.x * 3 + cell.y * 5;
-}
-
 class GameOfLife
 {
 public:
@@ -48,9 +43,6 @@ public:
 	static sf::Color getThreadColor(int index);
 
 private:
-	// A cache of all the alive cells at the end of the update() call.
-	//std::vector<Cell> aliveCells = {};
-
 	// A 1D representation of the 2D grid that is the world.
 	std::vector<std::uint8_t> world;
 
@@ -61,11 +53,7 @@ private:
 	std::unordered_set<Cell> aliveCells;
 
 	// Keeps track of cells which are neighbors of alive cells, and how many alive cells they're next to.
-	//std::unordered_map<Cell, int> aliveCellNeighbors;
-	std::unordered_map<Cell, int, decltype(&cellHash)> aliveCellNeighbors(Hash_Size, cellHash);
-
-	// TODO L@@k here --> https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key/17017281#17017281
-	// TODO and HERE --> https://stackoverflow.com/questions/17016175/c-unordered-map-using-a-custom-class-type-as-the-key
+	std::unordered_map<Cell, int> aliveCellNeighbors;
 
 	void setDead(Cell cell);
 

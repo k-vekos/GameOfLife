@@ -18,22 +18,23 @@ public:
 
 	Cell(int x, int y) : x(x), y(y) {}
 
+	Cell(int x, int y, bool alive) : x(x), y(y), alive(alive) {}
+
 	Cell(const Cell&p) : x(p.x), y(p.y) {}
 
-	inline bool operator== (const Cell& p) const;
+	bool operator== (const Cell& p) const;
 
-	inline std::array<Cell, 8> neighbors(sf::Vector2i worldSize) const;
+	std::array<Cell, 8> neighbors(sf::Vector2i worldSize) const;
 };
 
-/*
-#pragma once
-
-#include <SFML/Graphics/Color.hpp>
-#include <SFML/System/Vector2.hpp>
-
-struct Cell
+namespace std
 {
-	sf::Vector2i position;
-	sf::Color color;
-};
-*/
+	template <>
+	struct hash<Cell>
+	{
+		size_t operator()(const Cell& k) const
+		{
+			return hash<int>()(k.x * 3 + k.y * 5);
+		}
+	};
+}

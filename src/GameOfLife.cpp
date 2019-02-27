@@ -6,7 +6,7 @@
 
 GameOfLife::GameOfLife(sf::Vector2i size) : worldSize(size), world(size.x * size.y, false), worldBuffer(world)
 {
-	//aliveCells.reserve(size.x * size.y); // reserve space for worst-case (all cells are alive)
+	aliveCellNeighbors.reserve(Hash_Size); // reserve space for worst-case (all cells are in the map)
 
 	// place an "acorn"
 	int midX = worldSize.x / 2;
@@ -25,7 +25,7 @@ GameOfLife::GameOfLife(sf::Vector2i size) : worldSize(size), world(size.x * size
 
 		if (world[i]) {
 			// get a new Cell object for this alive cell
-			Cell aliveCell{ pos.x, pos.y };
+			Cell aliveCell{ pos.x, pos.y, true };
 
 			// add to alive cells list
 			aliveCells.insert(aliveCell);
@@ -79,14 +79,11 @@ void GameOfLife::update()
 		if (liveCount < 2 || liveCount > 3) {
 			toDie.push_back(c);
 		}
-		else {
-			toLive.push_back(c);
-		}
 	}
 
 	for (auto& c : aliveCellNeighbors) {
-		if (c.first.alive)
-			continue;
+		if (aliveCells.find(c.first) != aliveCells.end()) // is this cell alive?
+			continue; // if so skip because we already updated aliveCells
 
 		if (aliveCellNeighbors[c.first] == 3) {
 			toLive.push_back(c.first);
