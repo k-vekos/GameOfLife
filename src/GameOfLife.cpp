@@ -99,6 +99,57 @@ void GameOfLife::update()
 	}
 }
 
+void GameOfLife::updateMP()
+{
+	std::vector<Cell> toDie;
+	std::vector<Cell> toLive;
+
+#pragma omp parallel
+	{
+		// private, per-thread variables
+		std::vector<Cell> myToDie;
+		std::vector<Cell> myToLive;
+
+#pragma omp for
+		for (int i = 0; i < aliveCells.size(); i++) {
+			auto it = aliveCells.begin();
+			std::advance(it, i);
+
+			int liveCount = aliveCellNeighbors[*it];
+			if (liveCount < 2 || liveCount > 3) {
+				myToDie.push_back(*it);
+			}
+		}
+
+#pragma omp for
+		for (int i = 0; i < aliveCellNeighbors.size(); i++) {
+			auto it = aliveCellNeighbors.begin();
+			std::advance(it, i);
+
+			if (aliveCells.find(it->first) != aliveCells.end()) // is this cell alive?
+				continue; // if so skip because we already updated aliveCells
+
+			if (aliveCellNeighbors[it->first] == 3) {
+				myToLive.push_back(it->first);
+			}
+		}
+
+#pragma omp critical
+		{
+			toDie.insert(toDie.end(), myToDie.begin(), myToDie.end());
+			toLive.insert(toLive.end(), myToLive.begin(), myToLive.end());
+		}
+	}
+
+	for (const Cell& deadCell : toDie) {
+		setDead(deadCell);
+	}
+
+	for (const Cell& liveCell : toLive) {
+		setAlive(liveCell);
+	}
+}
+
 void GameOfLife::setDead(Cell cell) {
 	// decrement count of all neighbors
 	for (const Cell& n : cell.neighbors(worldSize)) {

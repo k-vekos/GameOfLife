@@ -64,7 +64,8 @@ int main()
 		//}
 
 		// update w/ mouse draw disabled
-		game.update();
+		//game.update();
+		game.updateMP();
 
 		// render the game
 		worldRenderer.render(window, game);
